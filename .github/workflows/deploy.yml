@@ -1,24 +1,3 @@
-name: Deploy to VPS
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-        shell: bash
-
       - name: Deploy to server
         env:
           HOST: ${{ secrets.HOST }}
@@ -39,7 +18,7 @@ jobs:
 
           # Debugging: Set -x to log commands
           ssh $USER@$HOST 'bash -s' <<'ENDSSH'
-          set -x  # This will print each command before it is executed
+          set -eux  # Enable command logging and exit on error
           APP_DIR="/ci_cd"
           mkdir -p $APP_DIR
           cd $APP_DIR
@@ -51,19 +30,21 @@ jobs:
           fi
 
           # Write the .env file with the provided variables
-          echo "PORT=${PORT}" > .env
-          echo "DB_URI=${DB_URI}" >> .env
-          echo "EMAIL=${EMAIL}" >> .env
-          echo "APP_PASS=${APP_PASS}" >> .env
-          echo "JWT_SECRET=${JWT_SECRET}" >> .env
-          echo "DOMAIN=${DOMAIN}" >> .env
-          echo "CLOUDINARY_URL=${CLOUDINARY_URL}" >> .env
-          echo "CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}" >> .env
-          echo "CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}" >> .env
-          echo "CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}" >> .env
+          cat <<EOF > .env
+          PORT=${PORT}
+          DB_URI=${DB_URI}
+          EMAIL=${EMAIL}
+          APP_PASS=${APP_PASS}
+          JWT_SECRET=${JWT_SECRET}
+          DOMAIN=${DOMAIN}
+          CLOUDINARY_URL=${CLOUDINARY_URL}
+          CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+          CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+          CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
+          EOF
 
           npm install
-          npm run build
+          npm run build || { echo "Build failed"; exit 1; }
 
           if pm2 list | grep -q "ci_cd_app"; then
             pm2 restart ci_cd_app
@@ -71,6 +52,6 @@ jobs:
             pm2 start dist/main.js --name ci_cd_app
           fi
 
-          pm2 save
+          pm2 save || { echo "PM2 save failed"; exit 1; }
           ENDSSH
         shell: bash
