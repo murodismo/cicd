@@ -37,7 +37,9 @@ jobs:
         run: |
           ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
 
+          # Debugging: Set -x to log commands
           ssh $USER@$HOST 'bash -s' <<'ENDSSH'
+          set -x  # This will print each command before it is executed
           APP_DIR="/ci_cd"
           mkdir -p $APP_DIR
           cd $APP_DIR
@@ -48,6 +50,7 @@ jobs:
             git pull origin main
           fi
 
+          # Write the .env file with the provided variables
           echo "PORT=${PORT}" > .env
           echo "DB_URI=${DB_URI}" >> .env
           echo "EMAIL=${EMAIL}" >> .env
