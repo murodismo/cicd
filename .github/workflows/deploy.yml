@@ -8,6 +8,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -20,57 +21,51 @@ jobs:
         shell: bash
 
       - name: Deploy to server
-        env:
-          HOST: ${{ secrets.HOST }}
-          USER: ${{ secrets.USERNAME }}
-          APP_DIR: /ci_cd
-          PORT: ${{ secrets.PORT }}
-          DB_URI: ${{ secrets.DB_URI }}
-          EMAIL: ${{ secrets.EMAIL }}
-          APP_PASS: ${{ secrets.APP_PASS }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          DOMAIN: ${{ secrets.DOMAIN }}
-          CLOUDINARY_URL: ${{ secrets.CLOUDINARY_URL }}
-          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
-          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
-          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
         run: |
-          ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
 
-          # Debugging: Set -x to log commands
-          ssh $USER@$HOST 'bash -s' <<'ENDSSH'
-          set -x  # This will print each command before it is executed
-          APP_DIR="/ci_cd"
-          mkdir -p $APP_DIR
-          cd $APP_DIR
+          # Create a temporary .env file locally
+          cat <<EOF > .env
+PORT=${{ secrets.PORT }}
+DB_URI=${{ secrets.DB_URI }}
+EMAIL=${{ secrets.EMAIL }}
+APP_PASS=${{ secrets.APP_PASS }}
+JWT_SECRET=${{ secrets.JWT_SECRET }}
+DOMAIN=${{ secrets.DOMAIN }}
+CLOUDINARY_URL=${{ secrets.CLOUDINARY_URL }}
+CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
+CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
+CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
+EOF
 
-          if [ ! -d ".git" ]; then
-            git clone https://github.com/murodismo/cicd.git .
-          else
-            git pull origin main
-          fi
+          # Upload .env file to the remote server
+          scp -o StrictHostKeyChecking=no .env ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/tmp/project.env
 
-          # Write the .env file with the provided variables
-          echo "PORT=${PORT}" > .env
-          echo "DB_URI=${DB_URI}" >> .env
-          echo "EMAIL=${EMAIL}" >> .env
-          echo "APP_PASS=${APP_PASS}" >> .env
-          echo "JWT_SECRET=${JWT_SECRET}" >> .env
-          echo "DOMAIN=${DOMAIN}" >> .env
-          echo "CLOUDINARY_URL=${CLOUDINARY_URL}" >> .env
-          echo "CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}" >> .env
-          echo "CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}" >> .env
-          echo "CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}" >> .env
+          # Deploy code to remote server
+          ssh ${{ secrets.USERNAME }}@${{ secrets.HOST }} 'bash -s' <<'ENDSSH'
+            set -x
+            APP_DIR="/ci_cd"
+            mkdir -p $APP_DIR
+            cd $APP_DIR
 
-          npm install
-          npm run build
+            if [ ! -d ".git" ]; then
+              git clone https://github.com/murodismo/cicd.git .
+            else
+              git pull origin main
+            fi
 
-          if pm2 list | grep -q "ci_cd_app"; then
-            pm2 restart ci_cd_app
-          else
-            pm2 start dist/main.js --name ci_cd_app
-          fi
+            # Move the uploaded .env file into the app directory
+            mv /tmp/project.env .env
 
-          pm2 save
+            npm install
+            npm run build
+
+            if pm2 list | grep -q "ci_cd_app"; then
+              pm2 restart ci_cd_app
+            else
+              pm2 start dist/main.js --name ci_cd_app
+            fi
+
+            pm2 save
           ENDSSH
         shell: bash
