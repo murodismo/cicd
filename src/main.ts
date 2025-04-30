@@ -17,7 +17,7 @@ async function bootstrap() {
     .setTitle('Auth API')
     .setDescription('Foydalanuvchi autentifikatsiyasi uchun API')
     .setVersion('1.0')
-    .addTag('auth') // Swagger tag
+    .addTag('auth') 
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
