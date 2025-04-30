@@ -48,18 +48,16 @@ jobs:
             git pull origin main
           fi
 
-          cat <<EOT > .env
-PORT="${PORT}"
-DB_URI="${DB_URI}"
-EMAIL="${EMAIL}"
-APP_PASS="${APP_PASS}"
-JWT_SECRET="${JWT_SECRET}"
-DOMAIN="${DOMAIN}"
-CLOUDINARY_URL="${CLOUDINARY_URL}"
-CLOUDINARY_API_SECRET="${CLOUDINARY_API_SECRET}"
-CLOUDINARY_API_KEY="${CLOUDINARY_API_KEY}"
-CLOUDINARY_CLOUD_NAME="${CLOUDINARY_CLOUD_NAME}"
-EOT
+          echo "PORT=${PORT}" > .env
+          echo "DB_URI=${DB_URI}" >> .env
+          echo "EMAIL=${EMAIL}" >> .env
+          echo "APP_PASS=${APP_PASS}" >> .env
+          echo "JWT_SECRET=${JWT_SECRET}" >> .env
+          echo "DOMAIN=${DOMAIN}" >> .env
+          echo "CLOUDINARY_URL=${CLOUDINARY_URL}" >> .env
+          echo "CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}" >> .env
+          echo "CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}" >> .env
+          echo "CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}" >> .env
 
           npm install -g pm2
           npm install
