@@ -36,39 +36,40 @@ jobs:
           CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
         run: |
           ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
-          ssh $USER@$HOST 'bash -s' <<EOF
-            APP_DIR="$APP_DIR"
-            mkdir -p \$APP_DIR
-            cd \$APP_DIR
 
-            if [ ! -d ".git" ]; then
-              git clone https://github.com/murodismo/cicd.git .
-            else
-              git pull origin main
-            fi
+          ssh $USER@$HOST 'bash -s' <<'ENDSSH'
+          APP_DIR="/ci_cd"
+          mkdir -p $APP_DIR
+          cd $APP_DIR
 
-            cat <<EOT > .env
-PORT=${PORT}
-DB_URI=${DB_URI}
-EMAIL=${EMAIL}
-APP_PASS=${APP_PASS}
-JWT_SECRET=${JWT_SECRET}
-DOMAIN=${DOMAIN}
-CLOUDINARY_URL=${CLOUDINARY_URL}
-CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
-CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
-CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
+          if [ ! -d ".git" ]; then
+            git clone https://github.com/murodismo/cicd.git .
+          else
+            git pull origin main
+          fi
+
+          cat <<EOT > .env
+PORT='"'"${PORT}"'"'
+DB_URI='"'"${DB_URI}"'"'
+EMAIL='"'"${EMAIL}"'"'
+APP_PASS='"'"${APP_PASS}"'"'
+JWT_SECRET='"'"${JWT_SECRET}"'"'
+DOMAIN='"'"${DOMAIN}"'"'
+CLOUDINARY_URL='"'"${CLOUDINARY_URL}"'"'
+CLOUDINARY_API_SECRET='"'"${CLOUDINARY_API_SECRET}"'"'
+CLOUDINARY_API_KEY='"'"${CLOUDINARY_API_KEY}"'"'
+CLOUDINARY_CLOUD_NAME='"'"${CLOUDINARY_CLOUD_NAME}"'"'
 EOT
 
-            npm install
-            npm run build
+          npm install
+          npm run build
 
-            if pm2 list | grep -q 'ci_cd_app'; then
-              pm2 restart ci_cd_app
-            else
-              pm2 start dist/main.js --name ci_cd_app
-            fi
+          if pm2 list | grep -q "ci_cd_app"; then
+            pm2 restart ci_cd_app
+          else
+            pm2 start dist/main.js --name ci_cd_app
+          fi
 
-            pm2 save
-EOF
+          pm2 save
+          ENDSSH
         shell: bash
