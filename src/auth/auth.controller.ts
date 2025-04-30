@@ -22,6 +22,7 @@ import {
   ApiParam,
   ApiResponse,
 } from '@nestjs/swagger';
+import { Public } from 'src/decorators/public.decorator';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -29,6 +30,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
+  @Public()
   @ApiOperation({ summary: 'Roʻyxatdan oʻtish' })
   @ApiBody({ type: CreateAuthDto })
   register(@Body() createAuthDto: CreateAuthDto) {
@@ -36,6 +38,7 @@ export class AuthController {
   }
 
   @Patch('verify/:id')
+  @Public()
   @ApiOperation({ summary: 'Email orqali tasdiqlash' })
   @ApiParam({ name: 'id', description: 'Foydalanuvchi IDsi' })
   @ApiBody({ schema: { example: { code: 123456 } } })
@@ -44,6 +47,7 @@ export class AuthController {
   }
 
   @Put('login')
+  @Public()
   @ApiOperation({ summary: 'Tizimga kirish' })
   @ApiBody({ type: UpdateAuthDto })
   login(@Body() updateAuthDto: UpdateAuthDto, @Res() res: Response) {
@@ -51,6 +55,7 @@ export class AuthController {
   }
 
   @Patch('forget_verify')
+  @Public()
   @ApiOperation({ summary: 'Parolni tiklash uchun kod yuborish' })
   @ApiBody({ type: UpdateAuthDto })
   forgetPasswordSendMessage(@Body() updateAuthDto: UpdateAuthDto) {
@@ -58,6 +63,7 @@ export class AuthController {
   }
 
   @Get('forget_password/:id')
+  @Public()
   @ApiOperation({ summary: 'Parolni tiklash sahifasini ko‘rsatish' })
   @ApiParam({ name: 'id', description: 'Foydalanuvchi IDsi' })
   @Render('forget_password')
@@ -66,6 +72,7 @@ export class AuthController {
   }
 
   @Post('forget_password/:id')
+  @Public()
   @ApiOperation({ summary: 'Yangi parolni saqlash' })
   @ApiParam({ name: 'id', description: 'Foydalanuvchi IDsi' })
   @ApiBody({ schema: { example: { new_password: 'newSecret123' } } })
