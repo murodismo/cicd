@@ -25,28 +25,41 @@ jobs:
           USER: ${{ secrets.USERNAME }}
           APP_DIR: /ci_cd
           PORT: ${{ secrets.PORT }}
-          DB_URI: ${{secrets.DB_URI}}
-          EMAIL: ${{secrets.EMAIL}}
-          APP_PASS: ${{secrets.APP_PASS}}
-          JWT_SECRET: ${{secrets.JWT_SECRET}}
-          DOMAIN: ${{secrets.DOMAIN}}
-          CLOUDINARY_URL: ${{secrets.CLOUDINARY_URL}}
-          CLOUDINARY_API_SECRET: ${{secrets.CLOUDINARY_API_SECRET}}
-          CLOUDINARY_API_KEY: ${{secrets.CLOUDINARY_API_KEY}}
-          CLOUDINARY_CLOUD_NAME: ${{secrets.CLOUDINARY_CLOUD_NAME}}
+          DB_URI: ${{ secrets.DB_URI }}
+          EMAIL: ${{ secrets.EMAIL }}
+          APP_PASS: ${{ secrets.APP_PASS }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          DOMAIN: ${{ secrets.DOMAIN }}
+          CLOUDINARY_URL: ${{ secrets.CLOUDINARY_URL }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
         run: |
           ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
-          ssh $USER@$HOST "
-            if [ ! -d $APP_DIR ]; then
-              mkdir -p $APP_DIR
-              git clone https://github.com/murodismo/cicd.git $APP_DIR
+          ssh $USER@$HOST 'bash -s' <<EOF
+            APP_DIR="$APP_DIR"
+            mkdir -p \$APP_DIR
+            cd \$APP_DIR
+
+            if [ ! -d ".git" ]; then
+              git clone https://github.com/murodismo/cicd.git .
             else
-              cd $APP_DIR
               git pull origin main
             fi
 
-            cd $APP_DIR
-            echo 'PORT=${PORT}' > .env
+            cat <<EOT > .env
+PORT=${PORT}
+DB_URI=${DB_URI}
+EMAIL=${EMAIL}
+APP_PASS=${APP_PASS}
+JWT_SECRET=${JWT_SECRET}
+DOMAIN=${DOMAIN}
+CLOUDINARY_URL=${CLOUDINARY_URL}
+CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
+EOT
+
             npm install
             npm run build
 
@@ -57,5 +70,5 @@ jobs:
             fi
 
             pm2 save
-          "
+EOF
         shell: bash
