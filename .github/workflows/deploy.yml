@@ -62,7 +62,6 @@ jobs:
           echo "CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}" >> .env
           echo "CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}" >> .env
 
-          npm install -g pm2
           npm install
           npm run build
 
