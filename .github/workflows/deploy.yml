@@ -25,6 +25,15 @@ jobs:
           USER: ${{ secrets.USERNAME }}
           APP_DIR: /ci_cd
           PORT: ${{ secrets.PORT }}
+          DB_URI: ${{secrets.DB_URI}}
+          EMAIL: ${{secrets.EMAIL}}
+          APP_PASS: ${{secrets.APP_PASS}}
+          JWT_SECRET: ${{secrets.JWT_SECRET}}
+          DOMAIN: ${{secrets.DOMAIN}}
+          CLOUDINARY_URL: ${{secrets.CLOUDINARY_URL}}
+          CLOUDINARY_API_SECRET: ${{secrets.CLOUDINARY_API_SECRET}}
+          CLOUDINARY_API_KEY: ${{secrets.CLOUDINARY_API_KEY}}
+          CLOUDINARY_CLOUD_NAME: ${{secrets.CLOUDINARY_CLOUD_NAME}}
         run: |
           ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
           ssh $USER@$HOST "
