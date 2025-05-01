@@ -25,6 +25,12 @@ export class AuthService {
   
     const existingUser = await this.authModel.findOne({ email });
   
+    const existingUsername = await this.authModel.findOne({ username })
+
+    if (existingUsername) {
+      throw new BadRequestException("Username already exists")
+    }
+
     const verification_code = Math.floor(100000 + Math.random() * 900000);
     const hashedPassword = await bcrypt.hash(password, 10);
   
