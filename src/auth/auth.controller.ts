@@ -32,7 +32,17 @@ export class AuthController {
   @Post('register')
   @Public()
   @ApiOperation({ summary: 'Roʻyxatdan oʻtish' })
-  @ApiBody({ type: CreateAuthDto })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', example: 'Murod' },
+        email: { type: 'string', example: 'murod@mail.com' },
+        password: { type: 'string', example: 'StrongPassword123' },
+      },
+      required: ['name', 'email', 'password'],
+    },
+  })
   register(@Body() createAuthDto: CreateAuthDto) {
     return this.authService.register(createAuthDto);
   }
@@ -49,7 +59,16 @@ export class AuthController {
   @Put('login')
   @Public()
   @ApiOperation({ summary: 'Tizimga kirish' })
-  @ApiBody({ type: UpdateAuthDto })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        email: { type: 'string', example: 'murod@mail.com' },
+        password: { type: 'string', example: 'StrongPassword123' },
+      },
+      required: ['email', 'password'],
+    },
+  })
   login(@Body() updateAuthDto: UpdateAuthDto, @Res() res: Response) {
     return this.authService.login(updateAuthDto, res);
   }
@@ -57,15 +76,21 @@ export class AuthController {
   @Patch('forget_verify')
   @Public()
   @ApiOperation({ summary: 'Parolni tiklash uchun kod yuborish' })
-  @ApiBody({ type: UpdateAuthDto })
-  forgetPasswordSendMessage(@Body() updateAuthDto: UpdateAuthDto) {
-    return this.authService.forgetPasswordSendMessage(updateAuthDto);
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        email: { type: 'string', format: 'email' },
+      },
+      required: ['email'],
+    },
+  })
+  forgetPasswordSendMessage(@Body('email') email: string) {
+    return this.authService.forgetPasswordSendMessage(email);
   }
 
   @Get('forget_password/:id')
   @Public()
-  @ApiOperation({ summary: 'Parolni tiklash sahifasini ko‘rsatish' })
-  @ApiParam({ name: 'id', description: 'Foydalanuvchi IDsi' })
   @Render('forget_password')
   getForgetPasswordPage(@Param('id') id: string) {
     return { id };
@@ -73,9 +98,6 @@ export class AuthController {
 
   @Post('forget_password/:id')
   @Public()
-  @ApiOperation({ summary: 'Yangi parolni saqlash' })
-  @ApiParam({ name: 'id', description: 'Foydalanuvchi IDsi' })
-  @ApiBody({ schema: { example: { new_password: 'newSecret123' } } })
   async submitForgetPassword(
     @Param('id') id: string,
     @Body() body: { new_password: string },

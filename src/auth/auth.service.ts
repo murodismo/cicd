@@ -137,9 +137,7 @@ export class AuthService {
     });
   }
 
-  async forgetPasswordSendMessage(updateAuthDto: UpdateAuthDto) {
-    const { email } = updateAuthDto;
-
+  async forgetPasswordSendMessage(email:string) {
     if (!email) {
       throw new BadRequestException('Email is required');
     }
