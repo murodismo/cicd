@@ -22,15 +22,12 @@ export class AuthService {
 
   async register(createAuthDto: CreateAuthDto) {
     const { username, email, password } = createAuthDto;
-
+  
     const existingUser = await this.authModel.findOne({ email });
-    if (existingUser) {
-      throw new BadRequestException('User already exists');
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
+  
     const verification_code = Math.floor(100000 + Math.random() * 900000);
-
+    const hashedPassword = await bcrypt.hash(password, 10);
+  
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -38,34 +35,64 @@ export class AuthService {
         pass: process.env.APP_PASS,
       },
     });
-
+  
     const mailOptions = {
       from: process.env.EMAIL,
       to: email,
       subject: 'Online shop verification Code',
       text: `Your verification code is: ${verification_code}`,
     };
-
+  
+    // 1. Agar user mavjud bo‘lsa
+    if (existingUser) {
+      if (existingUser.is_verify) {
+        throw new BadRequestException('User already exists');
+      }
+  
+      await transporter.sendMail(mailOptions);
+  
+      await this.authModel.updateOne(
+        { _id: existingUser._id },
+        {
+          $set: {
+            verification_code,
+            password: hashedPassword, 
+            username,                 
+          },
+        },
+      );
+  
+      setTimeout(async () => {
+        await this.authModel.updateOne(
+          { _id: existingUser._id },
+          { $set: { verification_code: null } },
+        );
+      }, 180000); // 3 daqiqa
+  
+      return { message: 'Verification code resent. Please verify your email.' };
+    }
+  
     await transporter.sendMail(mailOptions);
-
+  
     const newUser = new this.authModel({
       username,
       email,
       password: hashedPassword,
       verification_code,
     });
-
+  
     const savedUser = await newUser.save();
-
+  
     setTimeout(async () => {
       await this.authModel.updateOne(
         { _id: savedUser._id },
         { $set: { verification_code: null } },
       );
-    }, 180000); // 3 daqiqa
-
+    }, 180000); 
+  
     return { message: 'Successfully registered. Please verify email.' };
   }
+  
 
   async verify(code: number, id: string) {
     if (!code || code.toString().length !== 6) {
