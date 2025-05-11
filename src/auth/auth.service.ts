@@ -23,7 +23,7 @@ export class AuthService {
   
   async register(createAuthDto: CreateAuthDto) {
     const { username, email, password } = createAuthDto;
-  
+    
     const existingUser = await this.authModel.findOne({ email });
   
     const existingUsername = await this.authModel.findOne({ username })
@@ -50,7 +50,6 @@ export class AuthService {
       text: `Your verification code is: ${verification_code}`,
     };
   
-    // 1. Agar user mavjud bo‘lsa
     if (existingUser) {
       if (existingUser.is_verify) {
         throw new BadRequestException('User already exists');
@@ -76,7 +75,7 @@ export class AuthService {
         );
       }, 180000); // 3 daqiqa
   
-      return { message: 'Verification code resent. Please verify your email.' };
+      return { message: 'Verification code resent. Please verify your email.', _id: existingUser._id};
     }
   
     await transporter.sendMail(mailOptions);
@@ -97,7 +96,7 @@ export class AuthService {
       );
     }, 180000); 
   
-    return { message: 'Successfully registered. Please verify email.' };
+    return { message: 'Successfully registered. Please verify email.', _id: savedUser._id };
   }
   
 
