@@ -13,6 +13,12 @@ async function bootstrap() {
   const reflector = app.get(Reflector);
   const jwtService = app.get(JwtService);
 
+  app.enableCors({
+    origin: true,
+    credentials: true,
+  });
+  
+
   app.use(cookieParser());
   app.setViewEngine('ejs'); // EJS renderer
   app.setBaseViewsDir(join(__dirname, '..', 'views'));
