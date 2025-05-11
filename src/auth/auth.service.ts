@@ -117,7 +117,7 @@ export class AuthService {
       );
     }
 
-    if (user.verification_code !== code) {
+    if (user.verification_code != code) {
       throw new BadRequestException('Your verification code is incorrect.');
     }
 
