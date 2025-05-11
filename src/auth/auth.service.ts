@@ -20,6 +20,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  
   async register(createAuthDto: CreateAuthDto) {
     const { username, email, password } = createAuthDto;
   
