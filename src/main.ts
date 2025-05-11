@@ -18,7 +18,6 @@ async function bootstrap() {
     credentials: true,
   });
   
-
   app.use(cookieParser());
   app.setViewEngine('ejs'); // EJS renderer
   app.setBaseViewsDir(join(__dirname, '..', 'views'));
