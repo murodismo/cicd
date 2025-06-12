@@ -15,7 +15,10 @@ export class OrderController {
   @ApiResponse({ status: 201, description: 'Order created or updated successfully' })
   createOrder(@Body() createOrderDto: CreateOrderDto) {
     return this.orderService.createOrder(createOrderDto);
-  }
+  }rm -rf node_modules
+rm package-lock.json
+npm install
+
 
   @Patch(':orderId/status')
   @ApiOperation({ summary: 'Update order status (e.g. complete or cancel)' })
